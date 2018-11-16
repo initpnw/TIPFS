@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+PREFIX=/opt/tipfs
+
+temp_file=`mktemp`
+ipfs add > $temp_file
+ipfs_hash=$(cut -f2 -d' ' < $temp_file)
+ipfs_peers=(`ipfs swarm peers | awk -F/ '{ print $7; }'`)
+ipfs_peer_count=${#ipfs_peers[@]}
+replica_count=$($PREFIX/bin/rep-calc.pl $ipfs_peer_count)
+
+echo "Peer Count:" $ipfs_peer_count
+echo "Replica Count:" $replica_count
+
+for r in $(seq 1 $replica_count)
+do
+	random_number=$(( $RANDOM % ${#ipfs_peers[@]}  ))
+	echo "Asking Node:" ${ipfs_peers[$random_number]} "to pin:" $ipfs_hash 
+	ipfs pubsub pub ${ipfs_peers[$random_number]} "$ipfs_hash%"
+	unset ipfs_peers[$random_number]
+	ipfs_peers=("${ipfs_peers[@]}")
+done

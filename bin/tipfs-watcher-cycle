@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+PREFIX=/opt/tipfs
+
+pkill -f 'ipfs pubsub'
+
+NODEID=$(ipfs config show | grep PeerID | cut -f2 -d: | tr -d \" | tr -d [:space:])
+
+ipfs pubsub sub all | xargs -d '%' -P 0 -n 1 $PREFIX/bin/tipfs-pin &>> $PREFIX/log/tipfs.log &
+ipfs pubsub sub $NODEID | xargs -d '%' -P 0 -n 1 $PREFIX/bin/tipfs-pin &>> $PREFIX/log/tipfs.log &
+ipfs pubsub sub unpin | xargs -d '%' -P 0 -n 1 $PREFIX/bin/tipfs-unpin &>> $PREFIX/log/tipfs.log &

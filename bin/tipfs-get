@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+ipfs pin add $1 &> /dev/null
+ipfs cat $1
